@@ -1,0 +1,90 @@
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Cấu hình mặc định
+_G.HitboxSize = 25 -- Kích thước hitbox theo yêu cầu của bạn
+_G.HitboxEnabled = false -- Mặc định vào game sẽ TẮT
+
+-- Hàm xử lý bật/tắt và đổi kích thước hitbox kẻ địch/người chơi khác
+function ToggleHitbox()
+    _G.HitboxEnabled = not _G.HitboxEnabled
+    
+    if _G.HitboxEnabled then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "BiHitBoxv2
+            Text = "Đstatus: ĐÃ BẬT 🟢",
+            Duration = 2
+        })
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = BiHitBoxv2
+            Text = "Status: ĐÃ TẮT 🔴",
+            Duration = 2
+        })
+    end
+end
+
+-- Vòng lặp liên tục quét để giữ nguyên kích thước hitbox khi đối thủ hồi sinh
+game:GetService("RunService").RenderStepped:Connect(function()
+    for _, player in next, Players:GetPlayers() do
+        if player ~= LocalPlayer and player.Character then
+            -- Quét bộ phận HumanoidRootPart (vùng trung tâm nhân vật)
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if _G.HitboxEnabled then
+                    hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    hrp.Transparency = 0.7 -- Làm mờ màu đỏ để bạn dễ nhìn mục tiêu
+                    hrp.BrickColor = BrickColor.new("Really red") -- Đổi sang màu đỏ
+                    hrp.CanCollide = false
+                else
+                    -- Trả về kích thước mặc định của Roblox khi TẮT
+                    hrp.Size = Vector3.new(2, 2, 1)
+                    hrp.Transparency = 1
+                    hrp.CanCollide = true
+                end
+            end
+        end
+    end
+end)
+
+-- Bắt sự kiện nút bấm: Nhấn phím "Mũi tên phải" (Dành cho bàn phím ngoài/giả lập)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Right then
+        ToggleHitbox()
+    end
+end)
+
+-- TẠO NÚT BẤM ẢO TRÊN MÀN HÌNH ĐIỆN THOẠI (Vì điện thoại không có bàn phím cơ)
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.Position = UDim2.new(0.85, 0, 0.4, 0) -- Nằm ở phía bên phải màn hình
+ToggleButton.Size = UDim2.new(0, 80, 0, 40)
+ToggleButton.Text = "Hitbox: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14
+ToggleButton.Font = Enum.Font.SourceSansBold
+
+-- Bo tròn góc nút bấm cho đẹp
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
+
+-- Sự kiện khi chạm vào nút trên màn hình điện thoại
+ToggleButton.MouseButton1Click:Connect(function()
+    ToggleHitbox()
+    if _G.HitboxEnabled then
+        ToggleButton.Text = "Hitbox: ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0) -- Đổi nút sang màu xanh lá
+    else
+        ToggleButton.Text = "Hitbox: OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0) -- Đổi nút sang màu đỏ
+    end
+end)
